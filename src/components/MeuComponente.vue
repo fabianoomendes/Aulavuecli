@@ -7,7 +7,7 @@
       <div class="col col-md-9">
         <h4 class="mt-4">Selecione os produtos</h4>
         <section class="itens">
-          <div class="card m-3 pt-1" style="width: 18rem;" v-for="produto in produtos" :key="produto.nome" :class="{ativo :produto.ativo}" @click="produto.ativo = !produto.ativo">
+          <div class="card m-3 pt-1" style="width: 18rem;" v-for="produto in produtos" :key="produto.nome" :class="{ativo :produto.ativo && produto.qtd > 0}"    @click="produto.ativo = !produto.ativo">
             <img class="card-img-top img" :src="produto.foto" alt="Card image cap">
             <div class="prodIndis" v-if="produto.qtd < 1">
               <span>Produto indisponível</span>
@@ -15,17 +15,17 @@
             <div class="card-body">
               <h5 class="card-title" style="font-weight: bold">{{ produto.nome }}</h5>
               <p class="card-text">R$ {{ produto.valor }}</p>
-              <div class="quantidade" :class="{esconder :!produto.ativo}">
+              <div class="quantidade" :class="{esconder :!produto.ativo || produto.qtd == 0}">
                 <button @click.stop="produto.count--" :disabled="produto.count <= 1 || produto.qtd == 0" class="btn btn-primary btn-sm">-</button>
                 <span class="mx-2">{{ produto.count }}</span>
-                <button @click.stop="produto.count++" :disabled="produto.qtd == 0" class="btn btn-primary btn-sm">+</button>
+                <button @click.stop="produto.count++" :disabled="produto.qtd == 0 || produto.count == produto.qtd" class="btn btn-primary btn-sm">+</button>
               </div>
             </div>
           </div>
         </section>
       </div>
 
-      <div class="col col-md-3" v-show="total() > 0">
+      <div class="resumo col col-md-3" v-show="total() > 0">
         <strong>Resumo do pedido</strong>
         <table class="table table-striped">
           <thead>
@@ -37,9 +37,11 @@
           </thead>
           <tbody>
             <tr v-for="produto in produtos" :key="produto.nome">
-              <td v-if="produto.ativo">{{ produto.count}}</td>
-              <td v-if="produto.ativo">{{ produto.nome }}</td>
-              <td v-if="produto.ativo">{{ (produto.count * produto.valor).toFixed(2).toString().replace('.', ',') }}</td>
+              <template v-if="produto.ativo && produto.qtd > 0">
+                <td>{{ produto.count}}</td>
+                <td>{{ produto.nome }}</td>
+                <td>{{ (produto.count * produto.valor).toFixed(2).toString().replace('.', ',') }}</td>
+              </template>
             </tr>
           </tbody>
           <tfoot>
@@ -132,7 +134,7 @@ export default {
     total() {
       let total = 0
       this.produtos.forEach(function(item) {
-        if(item.ativo){
+        if(item.ativo && item.qtd > 0){
           total += item.valor * item.count
         }
       })
@@ -181,5 +183,8 @@ export default {
   .quantidade{
     position: absolute;
     bottom: 10px;
+  }
+  .resumo{
+    margin-top: 70px;
   }
 </style>
